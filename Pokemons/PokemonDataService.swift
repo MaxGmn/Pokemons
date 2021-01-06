@@ -13,17 +13,18 @@ enum NetworkError: Error {
 }
 
 protocol PokemonDataServiceProtocol {
-    func download<T:Decodable>(link: String, completion: @escaping (Result<T, Error>) -> Void)
+    func load<T:Decodable>(link: String, completion: @escaping (Result<T, Error>) -> Void)
+    func fetchData(for links: [String?], completion: @escaping ([Data]) -> Void)
 }
 
 class PokemonDataService: PokemonDataServiceProtocol {
-    func download<T:Decodable>(link: String, completion: @escaping (Result<T, Error>) -> Void) {
+    func load<T:Decodable>(link: String, completion: @escaping (Result<T, Error>) -> Void) {
         guard let url = URL(string: link) else {
             completion(.failure(NetworkError.incorrectUrl))
             return
         }
         
-        let dataTask = URLSession.shared.dataTask(with: url) { (data, response, error) in
+        let dataTask = URLSession.shared.dataTask(with: url) { data, response, error in
             if let data = data, let result = try? JSONDecoder().decode(T.self, from: data) {
                 completion(.success(result))
                 return
@@ -37,5 +38,28 @@ class PokemonDataService: PokemonDataServiceProtocol {
         }
         
         dataTask.resume()
+    }
+    
+    func fetchData(for links: [String?], completion: @escaping ([Data]) -> Void) {
+        var dataArray: [Data] = []
+        let group = DispatchGroup()
+        
+        links.forEach {
+            guard let link = $0, let url = URL(string: link) else { return }
+            group.enter()
+            
+            let dataTask = URLSession.shared.dataTask(with: url) { data,_,_ in
+                if let data = data {
+                    dataArray.append(data)
+                }
+                group.leave()
+            }
+            
+            dataTask.resume()
+        }
+        
+        group.notify(queue: .main) {
+            completion(dataArray)
+        }
     }
 }

@@ -1,11 +1,9 @@
 //
-//  PokemonDataModel.swift
+//  PokemonListModel.swift
 //  Pokemons
 //
 //  Created by Maksym Humeniuk on 04.01.2021.
 //
-
-import Foundation
 
 struct PokemonList: Decodable {
     let count: Int
