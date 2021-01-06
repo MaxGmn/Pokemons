@@ -13,20 +13,32 @@ enum NetworkError: Error {
 }
 
 protocol PokemonDataServiceProtocol {
-    func load<T:Decodable>(link: String, completion: @escaping (Result<T, Error>) -> Void)
+    func load<T:Codable>(link: String, completion: @escaping (Result<T, Error>) -> Void)
     func fetchData(for links: [String?], completion: @escaping ([Data]) -> Void)
 }
 
 class PokemonDataService: PokemonDataServiceProtocol {
-    func load<T:Decodable>(link: String, completion: @escaping (Result<T, Error>) -> Void) {
+    private let offlineStorage: PokemonOfflineStorageProtocol
+    
+    init(offlineStorage: PokemonOfflineStorageProtocol) {
+        self.offlineStorage = offlineStorage
+    }
+    
+    func load<T:Codable>(link: String, completion: @escaping (Result<T, Error>) -> Void) {
         guard let url = URL(string: link) else {
             completion(.failure(NetworkError.incorrectUrl))
             return
         }
         
-        let dataTask = URLSession.shared.dataTask(with: url) { data, response, error in
+        let dataTask = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             if let data = data, let result = try? JSONDecoder().decode(T.self, from: data) {
                 completion(.success(result))
+                self?.offlineStorage.set(data: result, for: link)
+                return
+            }
+            
+            if let data: T = self?.offlineStorage.get(by: link) {
+                completion(.success(data))
                 return
             }
             
@@ -48,10 +60,14 @@ class PokemonDataService: PokemonDataServiceProtocol {
             guard let link = $0, let url = URL(string: link) else { return }
             group.enter()
             
-            let dataTask = URLSession.shared.dataTask(with: url) { data,_,_ in
+            let dataTask = URLSession.shared.dataTask(with: url) { [weak self] data,_,_ in
                 if let data = data {
                     dataArray.append(data)
+                    self?.offlineStorage.set(data: data, for: link)
+                } else if let data: Data = self?.offlineStorage.get(by: link) {
+                    dataArray.append(data)
                 }
+
                 group.leave()
             }
             

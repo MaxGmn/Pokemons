@@ -5,14 +5,14 @@
 //  Created by Maksym Humeniuk on 05.01.2021.
 //
 
-struct PokemonDetails: Decodable {
+struct PokemonDetails: Codable {
     let name: String
     let sprites: Sprites
     let stats: [Stat]
     let types: [Type]
 }
 
-struct Sprites: Decodable {
+struct Sprites: Codable {
     let back_default: String?
     let back_female: String?
     let back_shiny: String?
@@ -23,7 +23,7 @@ struct Sprites: Decodable {
     let front_shiny_female: String?
 }
 
-struct Stat: Decodable {
+struct Stat: Codable {
     let baseStat: Int
     let stat: Info
     
@@ -33,11 +33,11 @@ struct Stat: Decodable {
     }
 }
 
-struct Type: Decodable {
+struct Type: Codable {
     let type: Info
 }
 
-struct Info: Decodable {
+struct Info: Codable {
     let name: String
     let url: String
 }
