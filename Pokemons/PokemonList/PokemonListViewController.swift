@@ -12,9 +12,10 @@ import RxCocoa
 class PokemonListViewController: UIViewController {
     private let viewModel: PokemonListViewModelProtocol
     private let disposeBag = DisposeBag()
-    private let tableView: UITableView = {
+    private let cellId = "Cell"
+    private lazy var tableView: UITableView = {
         let table = UITableView()
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+        table.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
         return table
     }()
 
@@ -53,8 +54,8 @@ private extension PokemonListViewController {
         viewModel.getinitialPageData()
         
         viewModel.items
-            .bind(to: tableView.rx.items) { tableView, _, item in
-                guard let cell = tableView.dequeueReusableCell(withIdentifier: "Cell") else { return UITableViewCell() }
+            .bind(to: tableView.rx.items) { [weak self] tableView, _, item in
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: self?.cellId ?? "") else { return UITableViewCell() }
                 cell.textLabel?.text = item.name.capitalizeFirstLetter
                 return cell
             }
@@ -62,7 +63,10 @@ private extension PokemonListViewController {
         
         tableView.rx.itemSelected
             .subscribe(onNext: { [weak self] indexPath in
-                self?.viewModel.showDetails(for: indexPath.row)
+                if let data = self?.viewModel.getCellData(for: indexPath.row) {
+                    let detailsController = PokemonConfigurator.shared.getDetailsController(name: data.name, link: data.link)
+                    self?.show(detailsController, sender: nil)
+                }
                 self?.tableView.deselectRow(at: indexPath, animated: true)
             })
             .disposed(by: disposeBag)

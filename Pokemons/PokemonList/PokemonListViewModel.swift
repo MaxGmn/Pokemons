@@ -5,7 +5,6 @@
 //  Created by Maksym Humeniuk on 05.01.2021.
 //
 
-import Foundation
 import RxSwift
 
 protocol PokemonListViewModelProtocol {
@@ -13,7 +12,7 @@ protocol PokemonListViewModelProtocol {
     var itemsCount: Int { get }
     func getinitialPageData()
     func getNextPageDataIfPresent()
-    func showDetails(for index: Int)
+    func getCellData(for index: Int) -> (name: String, link: String)
 }
 
 class PokemonListViewModel: PokemonListViewModelProtocol {
@@ -43,15 +42,16 @@ class PokemonListViewModel: PokemonListViewModelProtocol {
         getData(for: nextPageLink)
     }
     
-    func showDetails(for index: Int) {
-        
+    func getCellData(for index: Int) -> (name: String, link: String) {
+        let pokemon = _items[index]
+        return (name: pokemon.name, link: pokemon.url)
     }
 }
     
 private extension PokemonListViewModel {
     func getData(for link: String?) {
         guard let unwrappedLink = link else { return }
-        dataService.download(link: unwrappedLink) { [weak self] (result: Result<PokemonList, Error>) in
+        dataService.load(link: unwrappedLink) { [weak self] (result: Result<PokemonList, Error>) in
             switch result {
             case .success(let list):
                 self?.nextPageLink = list.next
