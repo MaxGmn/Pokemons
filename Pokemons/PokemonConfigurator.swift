@@ -9,9 +9,12 @@ import UIKit
 
 class PokemonConfigurator {
     static let shared = PokemonConfigurator()
-    private let dataService = PokemonDataService()
+    private let dataService: PokemonDataServiceProtocol
     
-    private init() {}
+    private init() {
+        let offlineStorage = PokemonOfflineStorage()
+        dataService = PokemonDataService(offlineStorage: offlineStorage)
+    }
     
     func getRootController() -> UIViewController {
         let navController = UINavigationController()
