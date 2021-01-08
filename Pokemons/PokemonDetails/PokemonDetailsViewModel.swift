@@ -65,7 +65,7 @@ class PokemonDetailsViewModel: PokemonDetailsViewModelProtocol {
         }
     }
     
-    func fetchFullDetailsData(_ pokemonDetails: PokemonDetails) {
+    private func fetchFullDetailsData(_ pokemonDetails: PokemonDetails) {
         let mirror = Mirror(reflecting: pokemonDetails.sprites)
         let links = mirror.children.map{ $0.value as? String }
         dataService.fetchData(for: links) { [weak self] imagesData in
