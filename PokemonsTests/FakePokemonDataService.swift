@@ -11,8 +11,8 @@ import Foundation
 enum FakePokemonLinks: String {
     case initialLink = "https://pokeapi.co/api/v2/pokemon"
     case nexpPageLink = "https://pokeapi.co/api/v2/pokemon?offset=20&limit=20"
-    case bulbasaurDetailsPage = "https://pokeapi.co/api/v2/pokemon/1"
-    case spearowDetailsPage = "https://pokeapi.co/api/v2/pokemon/21"
+    case bulbasaurDetailsPage = "https://pokeapi.co/api/v2/pokemon/1/"
+    case spearowDetailsPage = "https://pokeapi.co/api/v2/pokemon/21/"
     
     var dataSource: String {
         switch self {
@@ -41,8 +41,8 @@ enum FakePokemonLinks: String {
 
 class FakePokemonDataService: PokemonDataServiceProtocol {
     func load<T:Decodable>(link: String, completion: @escaping (Result<T, Error>) -> Void) {
-        guard let link = FakePokemonLinks(rawValue: link),
-              let data = getData(link.dataSource),
+        guard let fakeLink = FakePokemonLinks(rawValue: link),
+              let data = getData(fakeLink.dataSource),
               let result = try? JSONDecoder().decode(T.self, from: data) else {
             completion(.failure(NetworkError.unknownError))
             return

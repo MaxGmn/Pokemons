@@ -24,7 +24,8 @@ class Test_PokemonListViewModel: XCTestCase {
     }
     
     func test_getinitialPageData() {
-        let list = scheduler!.createObserver([PokemonListItem].self)
+        let list = scheduler!.createObserver([PokemonItem].self)
+        let expect = expectation(description: "items")
         
         viewModel?.items
             .asObservable()
@@ -35,8 +36,16 @@ class Test_PokemonListViewModel: XCTestCase {
         
         scheduler!.start()
         
+        viewModel?.items
+            .subscribe(onNext: { _ in
+                expect.fulfill()
+            })
+            .disposed(by: disposeBag!)
+        
+        waitForExpectations(timeout: 5, handler: nil)
+        
         XCTAssertEqual(list.events.count, 1)
-        XCTAssertEqual(viewModel?.itemsCount, 20)
+        XCTAssertEqual(viewModel?.itemsCount, 1)
         
         guard let pokemonsList = list.events.last?.value.element,
               let firstPokemon = pokemonsList.first else {
@@ -44,12 +53,14 @@ class Test_PokemonListViewModel: XCTestCase {
             return
         }
         
-        XCTAssert(firstPokemon.url.contains(FakePokemonLinks.bulbasaurDetailsPage.rawValue))
+        XCTAssert(firstPokemon.name.contains(FakePokemonLinks.bulbasaurDetailsPage.pokemonName))
+        XCTAssert(firstPokemon.details.name.contains(FakePokemonLinks.bulbasaurDetailsPage.pokemonName))
     }
     
     func test_getNextPageDataIfPresent_dataIsPresent() {
-        let list = scheduler!.createObserver([PokemonListItem].self)
-        
+        let list = scheduler!.createObserver([PokemonItem].self)
+        let expect = expectation(description: "items")
+
         viewModel?.items
             .asObservable()
             .bind(to: list)
@@ -60,8 +71,17 @@ class Test_PokemonListViewModel: XCTestCase {
         
         scheduler!.start()
         
+        viewModel?.items
+            .element(at: 1)
+            .subscribe(onNext: { _ in
+            expect.fulfill()
+        })
+            .disposed(by: disposeBag!)
+        
+        waitForExpectations(timeout: 5, handler: nil)
+        
         XCTAssertEqual(list.events.count, 2)
-        XCTAssertEqual(viewModel?.itemsCount, 40)
+        XCTAssertEqual(viewModel?.itemsCount, 2)
 
         guard let pokemonsList = list.events.last?.value.element,
               let firstPokemon = pokemonsList.first else {
@@ -69,14 +89,16 @@ class Test_PokemonListViewModel: XCTestCase {
             return
         }
         
-        let twentyFirstPokemon = pokemonsList[20]
-        XCTAssert(firstPokemon.url.contains(FakePokemonLinks.bulbasaurDetailsPage.rawValue))
-        XCTAssert(twentyFirstPokemon.url.contains(FakePokemonLinks.spearowDetailsPage.rawValue))
-
+        let twentyFirstPokemon = pokemonsList[1]
+        XCTAssert(firstPokemon.name.contains(FakePokemonLinks.bulbasaurDetailsPage.pokemonName))
+        XCTAssert(firstPokemon.details.name.contains(FakePokemonLinks.bulbasaurDetailsPage.pokemonName))
+        XCTAssert(twentyFirstPokemon.name.contains(FakePokemonLinks.spearowDetailsPage.pokemonName))
+        XCTAssert(twentyFirstPokemon.details.name.contains(FakePokemonLinks.spearowDetailsPage.pokemonName))
     }
     
     func test_getCellData() {
-        let list = scheduler!.createObserver([PokemonListItem].self)
+        let list = scheduler!.createObserver([PokemonItem].self)
+        let expect = expectation(description: "items")
         
         viewModel?.items
             .asObservable()
@@ -87,19 +109,28 @@ class Test_PokemonListViewModel: XCTestCase {
         viewModel?.getNextPageDataIfPresent()
         
         scheduler!.start()
+        
+        viewModel?.items
+            .element(at: 1)
+            .subscribe(onNext: { _ in
+            expect.fulfill()
+        })
+            .disposed(by: disposeBag!)
+        
+        waitForExpectations(timeout: 5, handler: nil)
 
         guard let pokemonsList = list.events.last?.value.element,
               let firstPokemon = pokemonsList.first,
               let firstPokemonData = viewModel?.getCellData(for: 0),
-              let twentyFirstPokemonData = viewModel?.getCellData(for: 20) else {
+              let twentyFirstPokemonData = viewModel?.getCellData(for: 1) else {
             XCTFail()
             return
         }
-        let twentyFirstPokemon = pokemonsList[20]
-        XCTAssert(firstPokemon.url.contains(firstPokemonData.link))
+        let twentyFirstPokemon = pokemonsList[1]
         XCTAssert(firstPokemon.name.contains(firstPokemonData.name))
-        XCTAssert(twentyFirstPokemon.url.contains(twentyFirstPokemonData.link))
-        XCTAssert(twentyFirstPokemon.name.contains(twentyFirstPokemonData.name))        
+        XCTAssert(firstPokemon.details.name.contains(firstPokemonData.name))
+        XCTAssert(twentyFirstPokemon.name.contains(twentyFirstPokemonData.name))
+        XCTAssert(twentyFirstPokemon.details.name.contains(twentyFirstPokemonData.name))
     }
 
     override func tearDown() {

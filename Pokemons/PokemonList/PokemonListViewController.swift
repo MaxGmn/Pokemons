@@ -57,14 +57,17 @@ private extension PokemonListViewController {
             .bind(to: tableView.rx.items) { [weak self] tableView, _, item in
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: self?.cellId ?? "") else { return UITableViewCell() }
                 cell.textLabel?.text = item.name.capitalizeFirstLetter
+                if let imageData = item.imageData {
+                    cell.imageView?.image = UIImage(data: imageData)
+                }
                 return cell
             }
             .disposed(by: disposeBag)
         
         tableView.rx.itemSelected
             .subscribe(onNext: { [weak self] indexPath in
-                if let data = self?.viewModel.getCellData(for: indexPath.row) {
-                    let detailsController = PokemonConfigurator.shared.getDetailsController(name: data.name, link: data.link)
+                if let details = self?.viewModel.getCellData(for: indexPath.row) {
+                    let detailsController = PokemonConfigurator.shared.getDetailsController(with: details)
                     self?.show(detailsController, sender: nil)
                 }
                 self?.tableView.deselectRow(at: indexPath, animated: true)

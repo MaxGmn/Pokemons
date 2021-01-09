@@ -10,7 +10,6 @@ import RxSwift
 
 class PokemonDetailsViewController: UITableViewController {
     private let name: String
-    private let link: String
     private let viewModel: PokemonDetailsViewModelProtocol
     private let disposeBag = DisposeBag()
     private let simpleCellId = "SimpleCell"
@@ -26,9 +25,8 @@ class PokemonDetailsViewController: UITableViewController {
         setup()        
     }
     
-    init(name: String, link: String, viewModel: PokemonDetailsViewModelProtocol) {
+    init(name: String, viewModel: PokemonDetailsViewModelProtocol) {
         self.name = name
-        self.link = link
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -67,7 +65,7 @@ class PokemonDetailsViewController: UITableViewController {
     }
     
     private func setup() {
-        viewModel.getDetails(for: link)
+        viewModel.getDetails()
         
         viewModel.signal
             .subscribe(onNext: { [weak self] _ in
