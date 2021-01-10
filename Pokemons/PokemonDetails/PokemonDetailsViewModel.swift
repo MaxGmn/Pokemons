@@ -37,11 +37,12 @@ enum Details {
 protocol PokemonDetailsViewModelProtocol {
     var details: [Details] { get }
     var signal: PublishSubject<Void> { get }
-    func getDetails(for link: String)
+    func getDetails()
 }
 
 class PokemonDetailsViewModel: PokemonDetailsViewModelProtocol {
     private let dataService: PokemonDataServiceProtocol
+    private let pokemonDetails: PokemonDetails
     
     var details: [Details] = [] {
         didSet {
@@ -50,19 +51,13 @@ class PokemonDetailsViewModel: PokemonDetailsViewModelProtocol {
     }
     let signal = PublishSubject<Void>()
     
-    init(dataService: PokemonDataServiceProtocol) {
+    init(pokemonDetails: PokemonDetails, dataService: PokemonDataServiceProtocol) {
+        self.pokemonDetails = pokemonDetails
         self.dataService = dataService
     }
     
-    func getDetails(for link: String) {
-        dataService.load(link: link) { [weak self] (result: Result<PokemonDetails, Error>) in
-            switch result {
-            case .success(let pokemonDetails):
-                self?.fetchFullDetailsData(pokemonDetails)
-            case .failure(let error):
-                debugPrint(error.localizedDescription)
-            }
-        }
+    func getDetails() {
+        fetchFullDetailsData(pokemonDetails)
     }
     
     private func fetchFullDetailsData(_ pokemonDetails: PokemonDetails) {

@@ -24,9 +24,9 @@ class PokemonConfigurator {
         return navController
     }
     
-    func getDetailsController(name: String, link: String) -> UIViewController {
-        let detailsViewModel = PokemonDetailsViewModel(dataService: dataService)
-        let detailsViewController = PokemonDetailsViewController(name: name, link: link, viewModel: detailsViewModel)
+    func getDetailsController(with pokemonDetails: PokemonDetails) -> UIViewController {
+        let detailsViewModel = PokemonDetailsViewModel(pokemonDetails: pokemonDetails, dataService: dataService)
+        let detailsViewController = PokemonDetailsViewController(name: pokemonDetails.name, viewModel: detailsViewModel)
         return detailsViewController
     }
 }
