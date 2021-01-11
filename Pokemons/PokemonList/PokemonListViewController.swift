@@ -80,6 +80,15 @@ private extension PokemonListViewController {
                 self.viewModel.getNextPageDataIfPresent()
             })
             .disposed(by: disposeBag)
+        
+        tableView.rx.setDelegate(self)
+            .disposed(by: disposeBag)
+    }
+}
+
+extension PokemonListViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 100
     }
 }
 
